@@ -3,19 +3,18 @@ var myBubbles = [];
 var myScore;
 
 // TODO: Remove circle once out of bounds
-// TODO: Change accelereation
 // TODO: Change bubble appearance
 // TODO: Add sfx and background music
 // TODO: Add in sprite blowing bubbles from bottom right 
 
 function startGame() {
-    myScore = new component("30px", "Consolas", "black", 280, 40, "text");
+    myScore = new ScoreComponent("30px", "Consolas", "black", 280, 40);
     myGameArea.start();
 }
 
 var myGameArea = {
-    canvas : document.createElement("canvas"),
-    start : function() {
+    canvas: document.createElement("canvas"),
+    start: function () {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
         this.context = this.canvas.getContext("2d");
@@ -23,16 +22,16 @@ var myGameArea = {
         this.frameNo = 0;
         this.interval = setInterval(updateGameArea, 20);
         this.canvas.addEventListener('click', mouseClick);
-        },
-    clear : function() {
+    },
+    clear: function () {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 }
 
-class scoreComponent {
-    constructor(width, height, color, x, y) {
-        this.width = width;
-        this.height = height;
+class ScoreComponent {
+    constructor(fontSize, font, color, x, y) {
+        this.fontSize = fontSize;
+        this.font = font;
         this.color = color;
         this.x = x;
         this.y = y;
@@ -44,92 +43,93 @@ class scoreComponent {
     }
 
     update() {
-        ctx = myGameArea.context;
-        ctx.font = this.width + " " + this.height;
+        // redraws the score component onto the game area 
+        var ctx = myGameArea.context;
+        ctx.font = this.fontSize + " " + this.font;
         ctx.fillStyle = this.color;
-        ctx.fillText("SCORE: "+this.text, this.x, this.y);
+        ctx.fillText("SCORE: " + this.score, this.x, this.y);
     }
 }
 
 class BubbleComponent {
-    constructor(width, height, color, x, y, type, speedX, speedY) {
-        this.type = type;
-        this.score = 0;
-        this.width = width;
-        this.height = height;
-        this.speedX = speedX;
-        this.speedY = speedY;
+    constructor(radius, color, x, y, speedX, speedY) {
+        this.radius = radius;
+        this.color = color;
         this.x = x;
         this.y = y;
-        this.update = function () {
-            ctx = myGameArea.context;
-            if (this.type == "text") {
-                ctx.font = this.width + " " + this.height;
-                ctx.fillStyle = color;
-                ctx.fillText(this.text, this.x, this.y);
-            } else if (this.type == "bubble") {
-                // create bubble
-                ctx.fillStyle = color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.width, 0, 2 * Math.PI);
-                ctx.stroke();
-                ctx.fill();
-            }
-        };
-        const crashDelta = 5;
-        this.crashWith = function (click_x, click_y) {
-            // Check bubble crash
-            var dx = this.x - click_x;
-            var dy = this.y - click_y;
-            var distance = Math.sqrt(dx * dx + dy * dy);
-            if (distance <= this.width + crashDelta) {
-                return true;
-            }
-            return false;
-        };
+        this.speedX = speedX;
+        this.speedY = speedY;
     }
+
+    update() {
+        // update bubble location
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        // redraws the bubble component onto the game area 
+        var ctx = myGameArea.context;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+        ctx.stroke();
+        ctx.fill();
+    }
+
+    crashWith(click_x, click_y) {
+        // Check bubble crash
+        const crashDelta = 5;
+        var dx = this.x - click_x;
+        var dy = this.y - click_y;
+        var distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance <= this.radius + crashDelta) {
+            return true;
+        }
+        return false;
+    };
 }
 
 function generateValue(min, max) {
-    return Math.ceil(Math.random()*(max-min)+min);
+    return Math.random() * (max - min) + min;
 }
 
 function updateGameArea() {
     var radius, x, y, speed, directionAngle, speedX, speedY;
+    // Clear game area 
     myGameArea.clear();
     myGameArea.frameNo += 1;
-    if (myGameArea.frameNo == 1 || everyinterval(150)) {
-        x = generateValue(myGameArea.canvas.width*0.2, myGameArea.canvas.width*0.8);
-        y = generateValue(myGameArea.canvas.height*0.2, myGameArea.canvas.height*0.8);
-        speed = generateValue(0.5, 5);
+
+    if (myGameArea.frameNo == 1 || (myGameArea.frameNo % 100) == 0) {
+        // Create new bubble location
+        x = generateValue(myGameArea.canvas.width * 0.2, myGameArea.canvas.width * 0.8);
+        y = generateValue(myGameArea.canvas.height * 0.2, myGameArea.canvas.height * 0.8);
+
+        // Generate direction and speed of new bubble
+        speed = generateValue(0.5, 2);
         directionAngle = generateValue(0, 360);
         radius = generateValue(10, 30);
-        
-        myBubbles.push(new component(radius, radius, "green", x, y, "bubble"));
+        speedX = speed * Math.cos(directionAngle * Math.PI / 180);
+        speedY = speed * Math.sin(directionAngle * Math.PI / 180);
+
+        myBubbles.push(new BubbleComponent(radius, "green", x, y, speedX, speedY));
     }
+    // redraw all bubbles and other UI in game area
     for (i = 0; i < myBubbles.length; i += 1) {
-        myBubbles[i].x += -1*myBubbles[i].speedX;
-        myBubbles[i].y += -1*myBubbles[i].speedY;
         myBubbles[i].update();
     }
-    myScore.text="SCORE: " + myGameArea.frameNo;
     myScore.update();
 }
 
-function everyinterval(n) {
-    if ((myGameArea.frameNo / n) % 1 == 0) {return true;}
-    return false;
-}
-
 function mouseClick(event) {
+    // get mouse location
     var x, y;
     x = event.clientX;
     y = event.clientY;
-    
+
     // Check if mouse clicked on any bubbles 
     for (i = 0; i < myBubbles.length; i += 1) {
         if (myBubbles[i].crashWith(x, y)) {
             myBubbles.splice(i, 1);
+            myScore.addScore(100);
             return;
         }
     }
