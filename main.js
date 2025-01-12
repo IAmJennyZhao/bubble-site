@@ -13,6 +13,7 @@ const COLORS = [
 const BACKGROUND_IMAGE = new Image();
 const SPRITE_IDLE_IMAGE = new Image();
 const SPRITE_BUBBLE_IMAGE = new Image();
+const bubble_y_delta = 30;
 
 // TODO: Add sfx and background music
 
@@ -22,9 +23,10 @@ function startGame() {
     SPRITE_IDLE_IMAGE.src = "assets/fairy_standing.png";
     SPRITE_BUBBLE_IMAGE.src = "assets/fairy_blowing_bubble.png";
 
+    myGameArea.start();
     myScore = new ScoreComponent("30px", "Consolas", "black", 280, 40);
     mySprite = new SpriteComponent(100, 100);
-    myGameArea.start();
+    mySprite.updatePosition();
 }
 
 var myGameArea = {
@@ -79,7 +81,7 @@ class SpriteComponent {
     update() {
         // redraws the sprite component onto the game area
         var ctx = myGameArea.context;
-        if (this.state == "blowing") {
+        if (this.state == "bubble") {
             ctx.drawImage(SPRITE_BUBBLE_IMAGE, this.x, this.y, this.bubble_size, this.bubble_size);
         } else if (this.state == "idle") {
             ctx.drawImage(SPRITE_IDLE_IMAGE, this.x, this.y, this.idle_size, this.idle_size);
@@ -90,9 +92,9 @@ class SpriteComponent {
         this.state = newState;
     }
 
-    updatePosition(x, y) {
-        this.x = x;
-        this.y = y;
+    updatePosition() {
+        this.x = generateValue(myGameArea.canvas.width * 0.6, myGameArea.canvas.width * 0.8);
+        this.y = generateValue(myGameArea.canvas.height * 0.2 - bubble_y_delta, myGameArea.canvas.height * 0.8 - bubble_y_delta);
     }
 }
 
@@ -157,7 +159,6 @@ function updateGameArea() {
     // Clear game area 
     myGameArea.clear();
     myGameArea.frameNo += 1;
-    const bubble_y_delta = 30;
 
     if (myGameArea.frameNo == 1 || (myGameArea.frameNo % 100) == 0) {
         color = COLORS[Math.random() * COLORS.length | 0];
@@ -167,7 +168,7 @@ function updateGameArea() {
 
         // Generate direction and speed of new bubble
         speed = generateValue(0.5, 2);
-        directionAngle = generateValue(0, 360);
+        directionAngle = generateValue(120, 240);
         radius = generateValue(10, 30);
         speedX = speed * Math.cos(directionAngle * Math.PI / 180);
         speedY = speed * Math.sin(directionAngle * Math.PI / 180);
@@ -176,11 +177,8 @@ function updateGameArea() {
     }
     else if (myGameArea.frameNo % 100 == 85) {
         // Create new bubble location
-        x = generateValue(myGameArea.canvas.width * 0.2, myGameArea.canvas.width * 0.8);
-        y = generateValue(myGameArea.canvas.height * 0.2 - bubble_y_delta, myGameArea.canvas.height * 0.8 - bubble_y_delta);
-
-        mySprite.updatePosition(x, y);
-        mySprite.changeState("blowing");
+        mySprite.updatePosition();
+        mySprite.changeState("bubble");
     } else if (myGameArea.frameNo % 100 == 20) {
         mySprite.changeState("idle");
     }
