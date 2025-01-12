@@ -3,30 +3,37 @@ var myBubbles = [];
 var myScore;
 var mySprite;
 
-const BUBBLE_IMAGE = new Image();
+// import music and sfx
+var background_music = new Audio('assets/background_music.mp3');
+background_music.loop = true;
+var background_music_played = false;
+var pop_sfx = new Audio('assets/pop_sfx.wav');
+
+// color list for background
 const COLORS = [
     "rgba(223, 255, 253, 0.6)",     // blue
     "rgba(255, 224, 244, 0.6)",     // pink
     "rgba(235, 222, 255, 0.6)",     // purple
     "rgba(255, 246, 230, 0.6)"      // yellow
 ]
-const BACKGROUND_IMAGE = new Image();
-const SPRITE_IDLE_IMAGE = new Image();
-const SPRITE_BUBBLE_IMAGE = new Image();
 const bubble_y_delta = 30;
 
-// TODO: Add sfx and background music
+// import images
+const BUBBLE_IMAGE = new Image();
+BUBBLE_IMAGE.src = "assets/pink_bubble_large.png";
+const BACKGROUND_IMAGE = new Image();
+BACKGROUND_IMAGE.src = "assets/background.png";
+const SPRITE_IDLE_IMAGE = new Image();
+SPRITE_IDLE_IMAGE.src = "assets/fairy_standing.png";
+const SPRITE_BUBBLE_IMAGE = new Image();
+SPRITE_BUBBLE_IMAGE.src = "assets/fairy_blowing_bubble.png";
+
 
 function startGame() {
-    BUBBLE_IMAGE.src = "assets/pink_bubble_large.png";
-    BACKGROUND_IMAGE.src = "assets/background.png";
-    SPRITE_IDLE_IMAGE.src = "assets/fairy_standing.png";
-    SPRITE_BUBBLE_IMAGE.src = "assets/fairy_blowing_bubble.png";
-
-    myGameArea.start();
     myScore = new ScoreComponent("30px", "Consolas", "black", 280, 40);
     mySprite = new SpriteComponent(100, 100);
     mySprite.updatePosition();
+    myGameArea.start();
 }
 
 var myGameArea = {
@@ -41,6 +48,7 @@ var myGameArea = {
         this.canvas.addEventListener('click', mouseClick);
     },
     clear: function () {
+        // clear canvas and redraw background
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.drawImage(BACKGROUND_IMAGE, 0, 0, this.canvas.width, this.canvas.height);
     }
@@ -93,6 +101,7 @@ class SpriteComponent {
     }
 
     updatePosition() {
+        // generate new bubble position 
         this.x = generateValue(myGameArea.canvas.width * 0.6, myGameArea.canvas.width * 0.8);
         this.y = generateValue(myGameArea.canvas.height * 0.2 - bubble_y_delta, myGameArea.canvas.height * 0.8 - bubble_y_delta);
     }
@@ -151,6 +160,7 @@ class BubbleComponent {
 }
 
 function generateValue(min, max) {
+    // generates a random float between min and max 
     return Math.random() * (max - min) + min;
 }
 
@@ -207,8 +217,18 @@ function mouseClick(event) {
     // Check if mouse clicked on any bubbles 
     for (i = 0; i < myBubbles.length; i += 1) {
         if (myBubbles[i].crashWith(x, y)) {
+            // update bubble list and score
             myBubbles.splice(i, 1);
             myScore.addScore(100);
+
+            // play bubble pop sfx 
+            pop_sfx.play();
+
+            // play background music after user has interacted with site
+            if (background_music_played == false) {
+                background_music.play();
+                background_music_played = true;
+            }
             return;
         }
     }

@@ -2,4 +2,5 @@
 
 
 ## Attributions
-<a href='https://pngtree.com/freepng/blue-bubble-transparent_3610323.html'>png image from pngtree.com/</a>
+background music: https://freesound.org/people/ispeakwaves/sounds/384934/
+sfx: https://freesound.org/people/YehawSnail/sounds/683587/
