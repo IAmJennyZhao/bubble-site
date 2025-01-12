@@ -2,7 +2,6 @@
 var myBubbles = [];
 var myScore;
 
-// TODO: Remove circle once out of bounds
 // TODO: Change bubble appearance
 // TODO: Add sfx and background music
 // TODO: Add in sprite blowing bubbles from bottom right 
@@ -86,6 +85,17 @@ class BubbleComponent {
         }
         return false;
     };
+
+    isOutOfBounds() {
+        // Check bubble out of bounds
+        const boundsDelta = this.radius + 5;
+        if (this.x < -boundsDelta || this.x > myGameArea.canvas.width + boundsDelta) {
+            return true;
+        } else if (this.y < -boundsDelta || this.y > myGameArea.canvas.height + boundsDelta) {
+            return true;
+        }
+        return false;
+    }
 }
 
 function generateValue(min, max) {
@@ -114,6 +124,13 @@ function updateGameArea() {
     }
     // redraw all bubbles and other UI in game area
     for (i = 0; i < myBubbles.length; i += 1) {
+        // remove bubble if outside of game area
+        if (myBubbles[i].isOutOfBounds()) {
+            myBubbles.splice(i, 1);
+            myScore.addScore(-10);
+            i--;
+            continue;
+        }
         myBubbles[i].update();
     }
     myScore.update();
