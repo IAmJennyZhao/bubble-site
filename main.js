@@ -1,6 +1,8 @@
 
 var myBubbles = [];
 var myScore;
+var mySprite;
+
 const BUBBLE_IMAGE = new Image();
 const COLORS = [
     "rgba(223, 255, 253, 0.6)",     // blue
@@ -9,15 +11,20 @@ const COLORS = [
     "rgba(255, 246, 230, 0.6)"      // yellow
 ]
 const BACKGROUND_IMAGE = new Image();
+const SPRITE_IDLE_IMAGE = new Image();
+const SPRITE_BUBBLE_IMAGE = new Image();
 
 // TODO: Add sfx and background music
-// TODO: Add in sprite blowing bubbles from bottom right 
 
 function startGame() {
-    myScore = new ScoreComponent("30px", "Consolas", "black", 280, 40);
-    myGameArea.start();
     BUBBLE_IMAGE.src = "assets/pink_bubble_large.png";
     BACKGROUND_IMAGE.src = "assets/background.png";
+    SPRITE_IDLE_IMAGE.src = "assets/fairy_standing.png";
+    SPRITE_BUBBLE_IMAGE.src = "assets/fairy_blowing_bubble.png";
+
+    myScore = new ScoreComponent("30px", "Consolas", "black", 280, 40);
+    mySprite = new SpriteComponent(100, 100);
+    myGameArea.start();
 }
 
 var myGameArea = {
@@ -57,6 +64,35 @@ class ScoreComponent {
         ctx.font = this.fontSize + " " + this.font;
         ctx.fillStyle = this.color;
         ctx.fillText("SCORE: " + this.score, this.x, this.y);
+    }
+}
+
+class SpriteComponent {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.idle_size = 100;
+        this.bubble_size = 80;
+        this.state = "idle";
+    }
+
+    update() {
+        // redraws the sprite component onto the game area
+        var ctx = myGameArea.context;
+        if (this.state == "blowing") {
+            ctx.drawImage(SPRITE_BUBBLE_IMAGE, this.x, this.y, this.bubble_size, this.bubble_size);
+        } else if (this.state == "idle") {
+            ctx.drawImage(SPRITE_IDLE_IMAGE, this.x, this.y, this.idle_size, this.idle_size);
+        }
+    }
+
+    changeState(newState) {
+        this.state = newState;
+    }
+
+    updatePosition(x, y) {
+        this.x = x;
+        this.y = y;
     }
 }
 
@@ -121,12 +157,13 @@ function updateGameArea() {
     // Clear game area 
     myGameArea.clear();
     myGameArea.frameNo += 1;
+    const bubble_y_delta = 30;
 
     if (myGameArea.frameNo == 1 || (myGameArea.frameNo % 100) == 0) {
         color = COLORS[Math.random() * COLORS.length | 0];
-        // Create new bubble location
-        x = generateValue(myGameArea.canvas.width * 0.2, myGameArea.canvas.width * 0.8);
-        y = generateValue(myGameArea.canvas.height * 0.2, myGameArea.canvas.height * 0.8);
+        // get updated position 
+        x = mySprite.x;
+        y = mySprite.y + bubble_y_delta;
 
         // Generate direction and speed of new bubble
         speed = generateValue(0.5, 2);
@@ -137,6 +174,17 @@ function updateGameArea() {
 
         myBubbles.push(new BubbleComponent(radius, color, x, y, speedX, speedY));
     }
+    else if (myGameArea.frameNo % 100 == 85) {
+        // Create new bubble location
+        x = generateValue(myGameArea.canvas.width * 0.2, myGameArea.canvas.width * 0.8);
+        y = generateValue(myGameArea.canvas.height * 0.2 - bubble_y_delta, myGameArea.canvas.height * 0.8 - bubble_y_delta);
+
+        mySprite.updatePosition(x, y);
+        mySprite.changeState("blowing");
+    } else if (myGameArea.frameNo % 100 == 20) {
+        mySprite.changeState("idle");
+    }
+
     // redraw all bubbles and other UI in game area
     for (i = 0; i < myBubbles.length; i += 1) {
         // remove bubble if outside of game area
@@ -148,6 +196,7 @@ function updateGameArea() {
         }
         myBubbles[i].update();
     }
+    mySprite.update();
     myScore.update();
 }
 
