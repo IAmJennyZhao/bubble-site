@@ -28,12 +28,16 @@ SPRITE_IDLE_IMAGE.src = "assets/fairy_standing.png";
 const SPRITE_BUBBLE_IMAGE = new Image();
 SPRITE_BUBBLE_IMAGE.src = "assets/fairy_blowing_bubble.png";
 
+// TODO: Add menu screen
+// TODO: Add game end screen / free play
+// TODO: Change background based on device
+// TODO: Add UI Buttons to pause, turn off music, change bubble generation etc.
 
 function startGame() {
-    myScore = new ScoreComponent("30px", "Consolas", "black", 280, 40);
+    myScore = new ScoreComponent("30px", "Consolas", "black", 180, 40);
     mySprite = new SpriteComponent(100, 100);
-    mySprite.updatePosition();
     myGameArea.start();
+    mySprite.updatePosition();
 }
 
 var myGameArea = {
