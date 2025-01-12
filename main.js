@@ -1,14 +1,23 @@
 
 var myBubbles = [];
 var myScore;
+const BUBBLE_IMAGE = new Image();
+const COLORS = [
+    "rgba(223, 255, 253, 0.6)",     // blue
+    "rgba(255, 224, 244, 0.6)",     // pink
+    "rgba(235, 222, 255, 0.6)",     // purple
+    "rgba(255, 246, 230, 0.6)"      // yellow
+]
+const BACKGROUND_IMAGE = new Image();
 
-// TODO: Change bubble appearance
 // TODO: Add sfx and background music
 // TODO: Add in sprite blowing bubbles from bottom right 
 
 function startGame() {
     myScore = new ScoreComponent("30px", "Consolas", "black", 280, 40);
     myGameArea.start();
+    BUBBLE_IMAGE.src = "assets/pink_bubble_large.png";
+    BACKGROUND_IMAGE.src = "assets/background.png";
 }
 
 var myGameArea = {
@@ -24,6 +33,7 @@ var myGameArea = {
     },
     clear: function () {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.context.drawImage(BACKGROUND_IMAGE, 0, 0, this.canvas.width, this.canvas.height);
     }
 }
 
@@ -68,10 +78,14 @@ class BubbleComponent {
         // redraws the bubble component onto the game area 
         var ctx = myGameArea.context;
         ctx.fillStyle = this.color;
+        ctx.strokeStyle = this.color;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
         ctx.stroke();
         ctx.fill();
+
+        // draw bubble png overlay  
+        ctx.drawImage(BUBBLE_IMAGE, this.x-this.radius, this.y-this.radius, this.radius*2, this.radius*2);
     }
 
     crashWith(click_x, click_y) {
@@ -103,12 +117,13 @@ function generateValue(min, max) {
 }
 
 function updateGameArea() {
-    var radius, x, y, speed, directionAngle, speedX, speedY;
+    var radius, x, y, speed, directionAngle, speedX, speedY, color;
     // Clear game area 
     myGameArea.clear();
     myGameArea.frameNo += 1;
 
     if (myGameArea.frameNo == 1 || (myGameArea.frameNo % 100) == 0) {
+        color = COLORS[Math.random() * COLORS.length | 0];
         // Create new bubble location
         x = generateValue(myGameArea.canvas.width * 0.2, myGameArea.canvas.width * 0.8);
         y = generateValue(myGameArea.canvas.height * 0.2, myGameArea.canvas.height * 0.8);
@@ -120,7 +135,7 @@ function updateGameArea() {
         speedX = speed * Math.cos(directionAngle * Math.PI / 180);
         speedY = speed * Math.sin(directionAngle * Math.PI / 180);
 
-        myBubbles.push(new BubbleComponent(radius, "green", x, y, speedX, speedY));
+        myBubbles.push(new BubbleComponent(radius, color, x, y, speedX, speedY));
     }
     // redraw all bubbles and other UI in game area
     for (i = 0; i < myBubbles.length; i += 1) {
